@@ -89,6 +89,7 @@ import com.blikoon.qrcodescanner.QrCodeActivity;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputLayout;
 import com.nextcloud.client.account.UserAccountManager;
+import com.nextcloud.client.whatsnew.WhatsNewService;
 import com.owncloud.android.MainApp;
 import com.owncloud.android.R;
 import com.owncloud.android.authentication.SsoWebViewClient.SsoWebViewClientListener;
@@ -268,6 +269,9 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity
     @Inject
     protected UserAccountManager accountManager;
 
+    @Inject
+    protected WhatsNewService whatsService;
+
     /**
      * {@inheritDoc}
      *
@@ -281,7 +285,7 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity
         Uri data = getIntent().getData();
         boolean directLogin = data != null && data.toString().startsWith(getString(R.string.login_data_own_scheme));
         if (savedInstanceState == null && !directLogin) {
-            FirstRunActivity.runIfNeeded(this);
+            whatsService.runIfNeeded(this);
         }
 
         basicTokenType = AccountTypeUtils.getAuthTokenTypePass(MainApp.getAccountType(this));
