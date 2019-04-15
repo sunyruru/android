@@ -99,13 +99,10 @@ public class DocumentsStorageProvider extends DocumentsProvider {
     private OwnCloudClient client;
 
     @Inject UserAccountManager accountManager;
-
-
+    @Inject AppPreferences preferences;
 
     @Override
     public Cursor queryRoots(String[] projection) throws FileNotFoundException {
-        Context context = MainApp.getAppContext();
-        AppPreferences preferences = AppPreferencesImpl.fromContext(context);
         if (SettingsActivity.LOCK_PASSCODE.equals(preferences.getLockPreference()) ||
             SettingsActivity.LOCK_DEVICE_CREDENTIALS.equals(preferences.getLockPreference())) {
             return new FileCursor();
