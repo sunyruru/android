@@ -20,10 +20,8 @@
  * License along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.owncloud.android.ui.activity;
+package com.nextcloud.client.whatsnew;
 
-import android.content.Context;
-import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
@@ -31,12 +29,10 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
+import com.nextcloud.client.appinfo.AppInfo;
 import com.nextcloud.client.di.Injectable;
 import com.nextcloud.client.preferences.AppPreferences;
-import com.owncloud.android.MainApp;
 import com.owncloud.android.R;
-import com.owncloud.android.authentication.AccountUtils;
-import com.owncloud.android.features.FeatureItem;
 import com.owncloud.android.ui.adapter.FeaturesViewAdapter;
 import com.owncloud.android.ui.adapter.FeaturesWebViewAdapter;
 import com.owncloud.android.ui.whatsnew.ProgressIndicator;
@@ -57,6 +53,8 @@ public class WhatsNewActivity extends FragmentActivity implements ViewPager.OnPa
     private ProgressIndicator mProgress;
     private ViewPager mPager;
     @Inject AppPreferences preferences;
+    @Inject AppInfo appInfo;
+    @Inject WhatsNewService whatsNew;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,12 +71,12 @@ public class WhatsNewActivity extends FragmentActivity implements ViewPager.OnPa
 
         if (showWebView) {
             FeaturesWebViewAdapter featuresWebViewAdapter = new FeaturesWebViewAdapter(getSupportFragmentManager(),
-                    urls);
+                                                                                       urls);
             mProgress.setNumberOfSteps(featuresWebViewAdapter.getCount());
             mPager.setAdapter(featuresWebViewAdapter);
         } else {
             FeaturesViewAdapter featuresViewAdapter = new FeaturesViewAdapter(getSupportFragmentManager(),
-                    getWhatsNew(this, preferences));
+                                                                              whatsNew.getWhatsNew());
             mProgress.setNumberOfSteps(featuresViewAdapter.getCount());
             mPager.setAdapter(featuresViewAdapter);
         }
@@ -117,7 +115,7 @@ public class WhatsNewActivity extends FragmentActivity implements ViewPager.OnPa
         if (showWebView) {
             tv.setText(R.string.app_name);
         } else {
-            tv.setText(String.format(getString(R.string.whats_new_title), MainApp.getVersionName()));
+            tv.setText(String.format(getString(R.string.whats_new_title), appInfo.getVersionName()));
         }
 
         updateNextButtonIfNeeded();
@@ -140,21 +138,7 @@ public class WhatsNewActivity extends FragmentActivity implements ViewPager.OnPa
     }
 
     private void onFinish() {
-        preferences.setLastSeenVersionCode(MainApp.getVersionCode());
-    }
-
-    public static void runIfNeeded(Context context, AppPreferences preferences) {
-        if (!context.getResources().getBoolean(R.bool.show_whats_new) || context instanceof WhatsNewActivity) {
-            return;
-        }
-
-        if (shouldShow(context, preferences)) {
-            context.startActivity(new Intent(context, WhatsNewActivity.class));
-        }
-    }
-
-    private static boolean shouldShow(Context context, AppPreferences preferences) {
-        return !(context instanceof PassCodeActivity) && getWhatsNew(context, preferences).length > 0;
+        preferences.setLastSeenVersionCode(appInfo.getVersionCode());
     }
 
     @Override
@@ -172,21 +156,6 @@ public class WhatsNewActivity extends FragmentActivity implements ViewPager.OnPa
     public void onPageScrollStateChanged(int state) {
         // unused but to be implemented due to abstract parent
     }
-
-    static private boolean isFirstRun(Context context) {
-        return AccountUtils.getCurrentOwnCloudAccount(context) == null;
-    }
-
-    private static FeatureItem[] getWhatsNew(Context context, AppPreferences preferences) {
-        int itemVersionCode = 30030099;
-
-        if (!isFirstRun(context) && MainApp.getVersionCode() >= itemVersionCode
-                && preferences.getLastSeenVersionCode() < itemVersionCode) {
-            return new FeatureItem[]{new FeatureItem(R.drawable.whats_new_device_credentials,
-                    R.string.whats_new_device_credentials_title, R.string.whats_new_device_credentials_content,
-                    false, false)};
-        } else {
-            return new FeatureItem[0];
-        }
-    }
 }
+
+

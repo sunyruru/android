@@ -40,8 +40,10 @@ import android.widget.TextView;
 import androidx.viewpager.widget.ViewPager;
 
 import com.nextcloud.client.account.UserAccountManager;
+import com.nextcloud.client.appinfo.AppInfo;
 import com.nextcloud.client.di.Injectable;
 import com.nextcloud.client.preferences.AppPreferences;
+import com.nextcloud.client.whatsnew.WhatsNewService;
 import com.owncloud.android.MainApp;
 import com.owncloud.android.R;
 import com.owncloud.android.authentication.AccountUtils;
@@ -66,6 +68,8 @@ public class FirstRunActivity extends BaseActivity implements ViewPager.OnPageCh
 
     @Inject UserAccountManager userAccountManager;
     @Inject AppPreferences preferences;
+    @Inject AppInfo appInfo;
+    @Inject WhatsNewService whatsNew;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -114,7 +118,7 @@ public class FirstRunActivity extends BaseActivity implements ViewPager.OnPageCh
         ViewPager viewPager = findViewById(R.id.contentPanel);
 
         // Sometimes, accounts are not deleted when you uninstall the application so we'll do it now
-        if (isFirstRun(this)) {
+        if (whatsNew.isFirstRun()) {
             AccountManager am = (AccountManager) getSystemService(ACCOUNT_SERVICE);
             if (am != null) {
                 for (Account account : userAccountManager.getAccounts()) {
@@ -123,8 +127,7 @@ public class FirstRunActivity extends BaseActivity implements ViewPager.OnPageCh
             }
         }
 
-        FeaturesViewAdapter featuresViewAdapter = new FeaturesViewAdapter(getSupportFragmentManager(),
-                getFirstRun());
+        FeaturesViewAdapter featuresViewAdapter = new FeaturesViewAdapter(getSupportFragmentManager(), getFirstRun());
         progressIndicator.setNumberOfSteps(featuresViewAdapter.getCount());
         viewPager.setAdapter(featuresViewAdapter);
 
@@ -176,7 +179,7 @@ public class FirstRunActivity extends BaseActivity implements ViewPager.OnPageCh
     }
 
     private void onFinish() {
-        preferences.setLastSeenVersionCode(MainApp.getVersionCode());
+        preferences.setLastSeenVersionCode(appInfo.getVersionCode());
     }
 
     @Override
