@@ -164,9 +164,17 @@ public class MainApp extends MultiDexApplication implements
     @SuppressWarnings("unused")
     private boolean mBound;
 
+    /**
+     * Temporary hack
+     */
+    private static void initGlobalContext(Context context) {
+        mContext = context;
+    }
+
     @Override
     protected void attachBaseContext(Context base) {
         super.attachBaseContext(base);
+        initGlobalContext(this);
         DaggerAppComponent.builder()
             .application(this)
             .build()
@@ -188,7 +196,6 @@ public class MainApp extends MultiDexApplication implements
                 uploadsStorageManager
             )
         );
-        MainApp.mContext = getApplicationContext();
 
         new SecurityUtils();
         DisplayUtils.useCompatVectorIfNeeded();
