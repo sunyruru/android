@@ -49,6 +49,7 @@ import android.util.Pair;
 import com.evernote.android.job.JobRequest;
 import com.evernote.android.job.util.Device;
 import com.nextcloud.client.account.UserAccountManager;
+import com.nextcloud.client.connectivity.NetworkStateProvider;
 import com.owncloud.android.MainApp;
 import com.owncloud.android.R;
 import com.owncloud.android.authentication.AccountUtils;
@@ -129,8 +130,8 @@ public class FileUploader extends Service
 
     private Notification mNotification;
 
-    @Inject
-    protected UserAccountManager accountManager;
+    @Inject UserAccountManager accountManager;
+    @Inject NetworkStateProvider networkState;
 
     /**
      * Call this Service with only this Intent key if all pending uploads are to be retried.
@@ -641,7 +642,8 @@ public class FileUploader extends Service
 
 
                     newUpload = new UploadFileOperation(
-                        mUploadsStorageManager,
+                            mUploadsStorageManager,
+                            networkState,
                             account,
                             file,
                             ocUpload,
@@ -701,6 +703,7 @@ public class FileUploader extends Service
 
             UploadFileOperation newUpload = new UploadFileOperation(
                     mUploadsStorageManager,
+                    networkState,
                     account,
                     null,
                     upload,

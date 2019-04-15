@@ -32,6 +32,7 @@ import android.util.Log;
 import com.evernote.android.job.JobRequest;
 import com.evernote.android.job.util.Device;
 import com.google.gson.reflect.TypeToken;
+import com.nextcloud.client.connectivity.NetworkStateProvider;
 import com.owncloud.android.datamodel.ArbitraryDataProvider;
 import com.owncloud.android.datamodel.DecryptedFolderMetadata;
 import com.owncloud.android.datamodel.EncryptedFolderMetadata;
@@ -147,6 +148,7 @@ public class UploadFileOperation extends SyncOperation {
     final private Account mAccount;
     final private OCUpload mUpload;
     final private UploadsStorageManager uploadsStorageManager;
+    final private NetworkStateProvider networkState;
 
     private boolean encryptedAncestor;
 
@@ -177,6 +179,7 @@ public class UploadFileOperation extends SyncOperation {
     }
 
     public UploadFileOperation(UploadsStorageManager uploadsStorageManager,
+                               NetworkStateProvider networkState,
                                Account account,
                                OCFile file,
                                OCUpload upload,
@@ -199,6 +202,7 @@ public class UploadFileOperation extends SyncOperation {
         }
 
         this.uploadsStorageManager = uploadsStorageManager;
+        this.networkState = networkState;
         mAccount = account;
         mUpload = upload;
         if (file == null) {
@@ -584,7 +588,7 @@ public class UploadFileOperation extends SyncOperation {
                 String userId = AccountManager.get(getContext()).getUserData(getAccount(),
                                                                              AccountUtils.Constants.KEY_USER_ID);
 
-                boolean onWifiConnection = ConnectivityUtils.isOnlineWithWifi(mContext);
+                boolean onWifiConnection = networkState.isUnmetered();
 
                 mUploadOperation = new ChunkedFileUploadRemoteOperation(encryptedTempFile.getAbsolutePath(),
                                                                         mFile.getParentRemotePath() + encryptedFileName,

@@ -46,6 +46,7 @@ import android.webkit.MimeTypeMap;
 import com.evernote.android.job.JobRequest;
 import com.evernote.android.job.util.Device;
 import com.nextcloud.client.account.CurrentAccountProvider;
+import com.nextcloud.client.connectivity.NetworkStateProvider;
 import com.owncloud.android.MainApp;
 import com.owncloud.android.R;
 import com.owncloud.android.datamodel.FileDataStorageManager;
@@ -112,13 +113,20 @@ public class FileOperationsHelper {
     private static final String FILE_EXTENSION_URL = "url";
     private static final String FILE_EXTENSION_DESKTOP = "desktop";
     private static final String FILE_EXTENSION_WEBLOC = "webloc";
+
     private FileActivity mFileActivity;
+    private NetworkStateProvider networkState;
     private CurrentAccountProvider currentAccount;
     /// Identifier of operation in progress which result shouldn't be lost
     private long mWaitingForOpId = Long.MAX_VALUE;
 
-    public FileOperationsHelper(FileActivity fileActivity, CurrentAccountProvider currentAccount) {
+    public FileOperationsHelper(
+        FileActivity fileActivity,
+        NetworkStateProvider networkState,
+        CurrentAccountProvider currentAccount
+    ) {
         mFileActivity = fileActivity;
+        this.networkState = networkState;
         this.currentAccount = currentAccount;
 
     }
@@ -208,11 +216,9 @@ public class FileOperationsHelper {
             }
 
             // if offline or walled garden, show old version with warning
-            if (Device.getNetworkType(mFileActivity).equals(JobRequest.NetworkType.ANY) ||
-                    ConnectivityUtils.isInternetWalled(mFileActivity)) {
+            if (Device.getNetworkType(mFileActivity).equals(JobRequest.NetworkType.ANY) || networkState.isWalled()) {
                 DisplayUtils.showSnackMessage(mFileActivity, R.string.file_not_synced);
                 EventBus.getDefault().post(new SyncEventFinished(intent));
-
                 return;
             }
 

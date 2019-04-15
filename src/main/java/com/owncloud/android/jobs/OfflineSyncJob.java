@@ -23,6 +23,7 @@ package com.owncloud.android.jobs;
 
 import android.accounts.Account;
 import android.content.Context;
+import android.net.ConnectivityManager;
 import android.os.Build;
 import android.os.PowerManager;
 
@@ -31,8 +32,8 @@ import com.evernote.android.job.JobManager;
 import com.evernote.android.job.JobRequest;
 import com.evernote.android.job.util.Device;
 import com.nextcloud.client.account.UserAccountManager;
+import com.nextcloud.client.connectivity.NetworkStateProvider;
 import com.owncloud.android.MainApp;
-import com.owncloud.android.authentication.AccountUtils;
 import com.owncloud.android.datamodel.FileDataStorageManager;
 import com.owncloud.android.datamodel.OCFile;
 import com.owncloud.android.lib.common.operations.RemoteOperationResult;
@@ -53,9 +54,11 @@ public class OfflineSyncJob extends Job {
 
     private static final String WAKELOCK_TAG_SEPARATION = ":";
     private UserAccountManager userAccountManager;
+    private NetworkStateProvider networkState;
 
-    public OfflineSyncJob(UserAccountManager userAccountManager) {
+    OfflineSyncJob(UserAccountManager userAccountManager, NetworkStateProvider networkState) {
         this.userAccountManager = userAccountManager;
+        this.networkState = networkState;
     }
 
     @NonNull
@@ -65,8 +68,8 @@ public class OfflineSyncJob extends Job {
 
         PowerManager.WakeLock wakeLock = null;
         if (!PowerUtils.isPowerSaveMode(context) &&
-                Device.getNetworkType(context).equals(JobRequest.NetworkType.UNMETERED) &&
-                !ConnectivityUtils.isInternetWalled(context)) {
+            Device.getNetworkType(context).equals(JobRequest.NetworkType.UNMETERED) &&
+            !networkState.isWalled()) {
             Set<Job> jobs = JobManager.instance().getAllJobsForTag(TAG);
             for (Job job : jobs) {
                 if (!job.isFinished() && !job.equals(this)) {

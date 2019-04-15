@@ -3,6 +3,7 @@ package com.owncloud.android;
 import android.content.ContentResolver;
 
 import com.nextcloud.client.account.CurrentAccountProvider;
+import com.nextcloud.client.connectivity.NetworkStateProvider;
 import com.owncloud.android.authentication.AccountUtils;
 import com.owncloud.android.datamodel.UploadsStorageManager;
 import com.owncloud.android.db.OCUpload;
@@ -29,12 +30,24 @@ public class UploadIT extends AbstractIT {
 
 
     private UploadsStorageManager storageManager;
+    private NetworkStateProvider mockNetworkState;
 
     @Before
     public void setUp() {
         final ContentResolver contentResolver = targetContext.getContentResolver();
         final CurrentAccountProvider currentAccountProvider = () -> AccountUtils.getCurrentOwnCloudAccount(targetContext);
         storageManager = new UploadsStorageManager(currentAccountProvider, contentResolver, targetContext);
+        mockNetworkState = new NetworkStateProvider() {
+            @Override
+            public boolean isWalled() {
+                return true;
+            }
+
+            @Override
+            public boolean isUnmetered() {
+                return true;
+            }
+        };
     }
 
     @Test
@@ -79,6 +92,7 @@ public class UploadIT extends AbstractIT {
     public RemoteOperationResult testUpload(OCUpload ocUpload) {
         UploadFileOperation newUpload = new UploadFileOperation(
             storageManager,
+            mockNetworkState,
             account,
             null,
             ocUpload,
@@ -103,6 +117,7 @@ public class UploadIT extends AbstractIT {
                 "/testUpload/2/3/4/1.txt", account.name);
         UploadFileOperation newUpload = new UploadFileOperation(
                 storageManager,
+                mockNetworkState,
                 account,
                 null,
                 ocUpload,
